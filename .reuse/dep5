@@ -1,0 +1,10 @@
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: Parkour Warrior Tracking Bot
+Upstream-Contact: osfanbuff63 <>
+Source: https://github.com/osfanbuff63/pkw-tracking-bot
+
+# Sample paragraph, commented out:
+#
+# Files: src/*
+# Copyright: $YEAR $NAME <$CONTACT>
+# License: ...
