@@ -263,13 +263,8 @@ class MainCog(commands.Cog):
 
 
 def setup() -> None:
-    if os.environ.get("REPLIT") == "1":
-        from .replit_keep_alive import keep_alive
-        token = os.environ.get("TOKEN")
-        keep_alive()
-    else:
-        from . import constants
-        token = constants.TOKEN
+    from . import constants
+    token = constants.TOKEN
     bot.remove_command("sync")  # workaround
     asyncio.run(bot.add_cog(MainCog(bot)))
     try:

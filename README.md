@@ -8,7 +8,7 @@ SPDX-License-Identifier: Apache-2.0
 
 ## About
 
-This is a [Discord](https://discord.com) bot to track Parkour Warrior Dojo statistics from the Minecraft server [MCC Island](https://mcchampionship.com). Currently there is no public instance, so you will need to host your own. A keep_alive file for Replit is included, but the environment variable `REPLIT` must be set to `1` to trigger it.
+This is a [Discord](https://discord.com) bot to track Parkour Warrior Dojo statistics from the Minecraft server [MCC Island](https://mcchampionship.com). Currently there is no public instance, so you will need to host your own.
 
 ## License
 
