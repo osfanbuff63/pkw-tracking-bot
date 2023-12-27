@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+
 class TimeException(Exception):
     """The time given was invalid or slower than the current time."""
 

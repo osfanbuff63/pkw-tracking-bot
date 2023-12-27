@@ -23,7 +23,7 @@ isort = "^5.13.1"
 mypy = "^1.7.1"
 
 [tool.poetry.scripts]
-pkw-tracking-bot = "pkw_tracking_bot"
+pkw-tracking-bot = "pkw_tracking_bot:run"
 
 [build-system]
 requires = ["poetry-core"]
