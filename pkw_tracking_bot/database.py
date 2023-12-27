@@ -59,28 +59,7 @@ class Database:
             logger.error(
                 "User did not exist for given course, assuming the time is newer."
             )
-            table = tomlkit.table()
-            table.append(tomlkit.key(["course_1", "time"]), "99:99.99")
-            table.append(tomlkit.key(["course_1", "advanced"]), False)
-
-            table.append(tomlkit.key(["course_2", "time"]), "99:99.99")
-            table.append(tomlkit.key(["course_2", "advanced"]), False)
-
-            table.append(tomlkit.key(["course_3", "time"]), "99:99.99")
-            table.append(tomlkit.key(["course_3", "advanced"]), False)
-
-            table.append(tomlkit.key(["course_4", "time"]), "99:99.99")
-            table.append(tomlkit.key(["course_4", "advanced"]), False)
-
-            table.append(tomlkit.key(["course_5", "time"]), "99:99.99")
-            table.append(tomlkit.key(["course_5", "advanced"]), False)
-
-            table.append(tomlkit.key(["course_6", "time"]), "99:99.99")
-            table.append(tomlkit.key(["course_6", "advanced"]), False)
-
-            table.append(tomlkit.key(["course_7", "time"]), "99:99.99")
-            table.append(tomlkit.key(["course_7", "advanced"]), False)
-            self.toml_doc.append(str(id), table)
+            self.register_user(user)
         self.toml_doc[f"{id}"][f"course_{course_id}"]["time"] = time
         self.toml_doc[f"{id}"][f"course_{course_id}"]["advanced"] = advanced
         # logger.debug(f"self.toml_doc: {self.toml_doc.as_string()}")
@@ -97,6 +76,7 @@ class Database:
             raise TypeError("User and users cannot both be defined.")
         if user is None and users is None:
             raise TypeError("One of user and users must be defined.")
+
         registered_users = []
         try:
             if self.toml_doc["registered_users"] != []:
@@ -116,6 +96,28 @@ class Database:
         else:
             logger.debug(f"User: {user}")
             raise TypeError("User was not a list or a discord User.")
+        table = tomlkit.table()
+        table.append(tomlkit.key(["course_1", "time"]), "99:99.99")
+        table.append(tomlkit.key(["course_1", "advanced"]), False)
+
+        table.append(tomlkit.key(["course_2", "time"]), "99:99.99")
+        table.append(tomlkit.key(["course_2", "advanced"]), False)
+
+        table.append(tomlkit.key(["course_3", "time"]), "99:99.99")
+        table.append(tomlkit.key(["course_3", "advanced"]), False)
+
+        table.append(tomlkit.key(["course_4", "time"]), "99:99.99")
+        table.append(tomlkit.key(["course_4", "advanced"]), False)
+
+        table.append(tomlkit.key(["course_5", "time"]), "99:99.99")
+        table.append(tomlkit.key(["course_5", "advanced"]), False)
+
+        table.append(tomlkit.key(["course_6", "time"]), "99:99.99")
+        table.append(tomlkit.key(["course_6", "advanced"]), False)
+
+        table.append(tomlkit.key(["course_7", "time"]), "99:99.99")
+        table.append(tomlkit.key(["course_7", "advanced"]), False)
+        self.toml_doc.append(str(id), table)
         logger.debug(f"registered_users: {str(registered_users)}")
         self.toml_doc["registered_users"] = registered_users
         self.file.write(self.toml_doc.as_string().replace("\\n", ""))
