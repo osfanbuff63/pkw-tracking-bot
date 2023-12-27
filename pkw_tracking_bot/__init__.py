@@ -14,23 +14,22 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 
+from . import constants
 from .database import Database
 from .embeds import error_embed, leaderboard_embed, success_embed
 from .exceptions import CourseException, TimeException
 from .logger import handler, logger
 from .pathlib_ext import PathExt
 
+token = constants.TOKEN
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot("!!", intents=intents)  # type: ignore
+
 
 def run() -> None:
-    from . import constants
-
-    token = constants.TOKEN
-    intents = discord.Intents.default()
-    intents.message_content = True
-    global bot
-    bot = commands.Bot("!!", intents=intents) # type: ignore
     bot.remove_command("sync")  # type: ignore
-    asyncio.run(bot.add_cog(MainCog(bot))) # type: ignore
+    asyncio.run(bot.add_cog(MainCog(bot)))  # type: ignore
     try:
         asyncio.run(bot.run(token, log_handler=handler, log_level=logging.DEBUG))  # type: ignore
     except ValueError:
@@ -153,7 +152,7 @@ class MainCog(commands.Cog):
     async def on_ready():  # type: ignore
         logger.info(f"{bot.user} has connected to Discord!")
         url = discord.utils.oauth_url(
-            bot.user.id, # type: ignore
+            bot.user.id,  # type: ignore
             permissions=discord.Permissions(274877975616),
             scopes=["bot", "applications.commands"],
         )
@@ -169,7 +168,7 @@ class MainCog(commands.Cog):
     @app_commands.command(name="ping", description="Ping the bot.")
     async def ping(self, interaction: discord.Interaction) -> None:
         await interaction.response.send_message(
-            f"Pong! Ping: {format(round(bot.latency, 1))}" # type: ignore
+            f"Pong! Ping: {format(round(bot.latency, 1))}"  # type: ignore
         )
 
     @app_commands.command(name="submit")
@@ -218,7 +217,7 @@ class MainCog(commands.Cog):
             logger.exception("Stored time was shorter than the given time.")
             embed = error_embed(
                 e,
-                f"The time you entered was longer than the currently stored time. If this is in error, please let <@995310680909549598> know.", 
+                f"The time you entered was longer than the currently stored time. If this is in error, please let <@995310680909549598> know.",
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
