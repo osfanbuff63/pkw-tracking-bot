@@ -12,8 +12,6 @@ file.write("")
 handler = logging.FileHandler(
     filename="pkw_tracking_bot.log", encoding="utf-8", mode="w"
 )
-handler2 = logging.StreamHandler(sys.stdout)
 logger = logging.getLogger("pkw_tracking_bot")
 logger.addHandler(handler)
-logger.addHandler(handler2)
 logger.setLevel(logging.DEBUG)
