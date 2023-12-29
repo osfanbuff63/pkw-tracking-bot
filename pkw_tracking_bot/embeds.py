@@ -38,6 +38,7 @@ def leaderboard_embed(
     registered_users_1 = registered_users.copy()
     logger.debug(f"All times: {str(all_times)}")
     logger.debug(f"Registered users (embeds): {registered_users}")
+    users = 0
     for user in registered_users_1:
         if all_times[user] == best_time and all_times[user] != "99:99.99":
             best_time_user = user
@@ -47,33 +48,42 @@ def leaderboard_embed(
             logger.debug(f"Current all times (1): {str(all_times)}")
             logger.debug(f"Current registered users (1): {str(registered_users_1)}")
             second_best_time = min(all_times_1.values())
+            users += 1
         else:
             continue
-    for user in registered_users_1:
-        if all_times[user] == second_best_time and all_times[user] != "99:99.99":
-            second_best_time_user = user
-            registered_users_1.remove(user)
-            all_times_1.pop(user)
-            logger.debug(f"Second place user: {user}")
-            logger.debug(f"Current all times (2): {str(all_times)}")
-        else:
-            if all_times[user] != "99:99.99":
-                third_best_time_user = user
-            continue
-    description = f"1. <@{best_time_user}>: {all_times[best_time_user]}\n"
     try:
-        if isinstance(second_best_time_user, int):
-            description += (
-                f"2. <@{second_best_time_user}>: {all_times[second_best_time_user]}\n"
-            )
-        if isinstance(third_best_time_user, int):
-            description += (
-                f"3. <@{third_best_time_user}>: {all_times[third_best_time_user]}"
-            )
+        for user in registered_users_1:
+            if all_times[user] == second_best_time and all_times[user] != "99:99.99":
+                second_best_time_user = user
+                registered_users_1.remove(user)
+                all_times_1.pop(user)
+                logger.debug(f"Second place user: {user}")
+                logger.debug(f"Current all times (2): {str(all_times)}")
+                users += 1
+            else:
+                if all_times[user] != "99:99.99":
+                    third_best_time_user = user
+                    users += 1
+                continue
     except UnboundLocalError:
-        logger.exception("Caught UnboundLocalError.")
-        pass
+        logger.exception("Caught UnboundLocalError!")
+    if users == 0:
+        description = "*No times have been submitted on this course yet.*"
+    else:
+        description = f"1. <@{best_time_user}>: {all_times[best_time_user]}\n"
+        try:
+            if isinstance(second_best_time_user, int):
+                description += f"2. <@{second_best_time_user}>: {all_times[second_best_time_user]}\n"
+            if isinstance(third_best_time_user, int):
+                description += (
+                    f"3. <@{third_best_time_user}>: {all_times[third_best_time_user]}"
+                )
+        except UnboundLocalError:
+            logger.exception("Caught UnboundLocalError.")
+            pass
     embed = Embed(
+        color=65280,
+        type="rich",
         description=description,
         title=f"Leaderboard for Course {course}",
     )
