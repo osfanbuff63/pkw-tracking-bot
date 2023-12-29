@@ -39,7 +39,7 @@ def run() -> None:
 
 
 class Buttons(discord.ui.View):
-    def __init__(self, *, timeout=180):
+    def __init__(self, *, timeout=None):
         super().__init__(timeout=timeout)
         self.database = Database(PathExt("database.toml"))
 
