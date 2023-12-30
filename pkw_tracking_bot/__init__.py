@@ -4,7 +4,6 @@
 
 import asyncio
 import logging
-import os
 import sys
 from string import Template
 from typing import Optional
@@ -17,7 +16,7 @@ from discord.ext.commands import Context
 from . import constants
 from .database import Database
 from .embeds import error_embed, leaderboard_embed, success_embed
-from .exceptions import CourseException, TimeException
+from .exceptions import CourseException, DiscordLibException, TimeException
 from .logger import handler, logger
 from .pathlib_ext import PathExt
 
@@ -172,12 +171,14 @@ class MainCog(commands.Cog):
         )
 
     @app_commands.command(name="submit")
+    @app_commands.guild_only()
     async def submit(
         self,
         interaction: discord.Interaction,
         time: str,
         course: int,
         advanced: bool = False,
+        user: Optional[discord.Member] = None,
     ):
         """Submit a time to be added to the leaderboard.
 
@@ -185,7 +186,38 @@ class MainCog(commands.Cog):
             time (str): The time.
             course (int): The course number. Possible values are integers 1-7.
             advanced (bool, optional): Whether it was an advanced completion. Defaults to False.
+            user: (Discord user, optional): Submit this time for another user. If not specified, it is assumed to be the user running the command. You must have the 'Moderate Members' permission to do this.
         """
+        if isinstance(interaction.user, discord.Member):
+            if interaction.user.guild_permissions.moderate_members == True:
+                if user is None:
+                    real_user = interaction.user
+                elif isinstance(user, discord.Member):
+                    real_user = user
+            else:
+                if user is not None:
+                    try:
+                        raise PermissionError(
+                            "You must have Moderate Members permission in this guild to use the `user` property!"
+                        )
+                    except PermissionError as e:
+                        logger.exception(
+                            "User is specified and the user is not a moderator!"
+                        )
+                        embed = error_embed(
+                            e,
+                            "You don't have the Moderate Members permission on this server, which means you cannot submit times for other users. If this is in error, please let <@995310680909549598> know.",
+                        )
+                        await interaction.response.send_message(
+                            embed=embed, ephemeral=True
+                        )
+                        raise PermissionError from e
+                else:
+                    real_user = interaction.user
+        else:
+            raise DiscordLibException(
+                "The discord.py library did not give the expected value. Did you try to run it in a DM?"
+            )
         # await interaction.response.defer()
         logger.debug(f"advanced: {advanced}")
         if course not in [1, 2, 3, 4, 5, 6, 7]:
@@ -204,15 +236,15 @@ class MainCog(commands.Cog):
             minute=time.split(":")[0], second=time.split(":")[1]
         )
         logger.debug(
-            f"Time being submitted by {interaction.user}: {time_data_fmt} (advanced: {advanced})"
+            f"Time being submitted by {real_user}: {time_data_fmt} (advanced: {advanced})"
         )
         try:
-            self.database.write(interaction.user, time_data_fmt, course, advanced)
-            await interaction.response.send_message(
-                embed=success_embed(
-                    "Your time was successfully added to the leaderboard."
-                )
-            )
+            self.database.write(real_user, time_data_fmt, course, advanced)
+            if advanced is True:
+                description = f"{real_user.mention}'s Advanced Completion time of {time_data_fmt} on Course {course} was successfully added to the leaderboard."
+            else:
+                description = f"{real_user.mention}'s time of {time_data_fmt} on Course {course} was successfully added to the leaderboard."
+            await interaction.response.send_message(embed=success_embed(description))
         except TimeException as e:
             logger.exception("Stored time was shorter than the given time.")
             embed = error_embed(
