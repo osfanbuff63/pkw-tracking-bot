@@ -1,0 +1,9 @@
+#!/usr/bin/env/bash
+# requires git and poetry
+kill -9 "$1"
+echo Updating...
+git pull
+poetry shell
+poetry install
+echo Running bot!
+nohup pkw-tracking-bot &
