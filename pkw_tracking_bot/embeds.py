@@ -70,10 +70,10 @@ def leaderboard_embed(
     if users == 0:
         description = "*No times have been submitted on this course yet.*"
     else:
-        description = f"1. <@{best_time_user}>: {all_times[best_time_user]}\n"
+        description = f"1. <@{best_time_user}>: **{all_times[best_time_user]}**\n"
         try:
             if isinstance(second_best_time_user, int):
-                description += f"2. <@{second_best_time_user}>: {all_times[second_best_time_user]}\n"
+                description += f"2. <@{second_best_time_user}>: **{all_times[second_best_time_user]}**\n"
             if isinstance(third_best_time_user, int):
                 description += (
                     f"3. <@{third_best_time_user}>: {all_times[third_best_time_user]}"

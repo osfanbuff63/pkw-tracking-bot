@@ -142,6 +142,11 @@ class Database:
         times = {}
         for user in registered_users:
             times[user] = current_state[f"{user}"][f"course_{course}"]["time"]
+            if current_state[f"{user}"][f"course_{course}"]["advanced"] == True:
+                str_times_user = str(times[user])
+                logger.debug(f"str_times_user: {str_times_user}")
+                times[user] = str_times_user + " [Advanced Completion]"
+                logger.debug(f"times[user]: {times[user]}")
         best_time = min(times.values())
         return times, best_time
 

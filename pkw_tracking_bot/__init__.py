@@ -241,9 +241,9 @@ class MainCog(commands.Cog):
         try:
             self.database.write(real_user, time_data_fmt, course, advanced)
             if advanced is True:
-                description = f"{real_user.mention}'s Advanced Completion time of {time_data_fmt} on Course {course} was successfully added to the leaderboard."
+                description = f"{real_user.mention}'s Advanced Completion time of **{time_data_fmt}** on Course {course} was successfully added to the leaderboard."
             else:
-                description = f"{real_user.mention}'s time of {time_data_fmt} on Course {course} was successfully added to the leaderboard."
+                description = f"{real_user.mention}'s time of **{time_data_fmt}** on Course {course} was successfully added to the leaderboard."
             await interaction.response.send_message(embed=success_embed(description))
         except TimeException as e:
             logger.exception("Stored time was shorter than the given time.")
