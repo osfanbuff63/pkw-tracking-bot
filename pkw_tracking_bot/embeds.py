@@ -2,11 +2,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+import time
 from typing import Optional
 
+import arrow
 from discord import Embed
 
+from .database import Database
 from .logger import logger
+from .pathlib_ext import PathExt
+
+database = Database(PathExt("database.toml"))
 
 
 def error_embed(error, extra_info: Optional[str]) -> Embed:
@@ -67,10 +73,21 @@ def leaderboard_embed(
                 continue
     except UnboundLocalError:
         logger.exception("Caught UnboundLocalError!")
+    now = arrow.now(tz="America/New_York")
+    timestamp = arrow.get(
+        now.year if now.month < 12 else now.year + 1,
+        now.month + 1 if now.month < 12 else 1,
+        1,
+        5,
+        0,
+        0,
+    ).timestamp()
+    # convert timestamp to an int because Discord doesn't accept decimal times
+    description = (f"**Courses reset <t:{int(timestamp)}:R>.**\n\n")
     if users == 0:
-        description = "*No times have been submitted on this course yet.*"
+        description += "*No times have been submitted on this course yet.*"
     else:
-        description = f"1. <@{best_time_user}>: **{all_times[best_time_user]}**\n"
+        description += f"1. <@{best_time_user}>: **{all_times[best_time_user]}**\n"
         try:
             if isinstance(second_best_time_user, int):
                 description += f"2. <@{second_best_time_user}>: **{all_times[second_best_time_user]}**\n"

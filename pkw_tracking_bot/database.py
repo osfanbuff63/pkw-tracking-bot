@@ -63,7 +63,7 @@ class Database:
         self.toml_doc[f"{id}"][f"course_{course_id}"]["time"] = time
         self.toml_doc[f"{id}"][f"course_{course_id}"]["advanced"] = advanced
         # logger.debug(f"self.toml_doc: {self.toml_doc.as_string()}")
-        self.toml_doc["last_updated"] = current_time.format("MM-DD-YYYY HH:mm:ss")
+        self.toml_doc["last_updated"] = current_time.timestamp()
         self.file.write(self.toml_doc.as_string().rstrip())
         self.update_dict()
 
