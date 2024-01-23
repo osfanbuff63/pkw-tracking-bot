@@ -78,7 +78,7 @@ def leaderboard_embed(
         now.year if now.month < 12 else now.year + 1,
         now.month + 1 if now.month < 12 else 1,
         1,
-        5,
+        10,
         0,
         0,
     ).timestamp()
