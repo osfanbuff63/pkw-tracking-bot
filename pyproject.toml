@@ -4,7 +4,7 @@
 
 [tool.poetry]
 name = "pkw-tracking-bot"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Discord bot to track Parkour Warrior Dojo times from MCC Island."
 authors = ["osfanbuff63 <osfanbuff63@osfanbuff63.tech>"]
 license = "Apache-2.0"
@@ -18,7 +18,7 @@ tomlkit = "^0.12.3"
 flask = "^3.0.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^23.11.0"
+black = "^24.0.0"
 isort = "^5.13.1"
 mypy = "^1.7.1"
 
