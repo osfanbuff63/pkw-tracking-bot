@@ -48,7 +48,7 @@ class Database:
             if current_time.date().month != written_time.date().month:  # type: ignore
                 # new month, reset the times
                 logger.info("A new month was detected, resetting all times.")
-                self._overwrite()
+                # self._overwrite()
         try:
             if (
                 self.toml_doc[f"{id}"][f"course_{course_id}"]["time"] < time
