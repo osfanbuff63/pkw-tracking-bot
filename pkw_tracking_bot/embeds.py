@@ -82,7 +82,7 @@ def leaderboard_embed(
         0,
     ).timestamp()
     # convert timestamp to an int because Discord doesn't accept decimal times
-    description = (f"**Courses reset <t:{int(timestamp)}:R>.**\n\n")
+    description = f"**Courses reset <t:{int(timestamp)}:R>.**\n\n"
     if users == 0:
         description += "*No times have been submitted on this course yet.*"
     else:

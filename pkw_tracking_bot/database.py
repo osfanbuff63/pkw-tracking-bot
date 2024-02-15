@@ -63,7 +63,8 @@ class Database:
         self.toml_doc[f"{id}"][f"course_{course_id}"]["time"] = time
         self.toml_doc[f"{id}"][f"course_{course_id}"]["advanced"] = advanced
         # logger.debug(f"self.toml_doc: {self.toml_doc.as_string()}")
-        self.toml_doc["last_updated"] = current_time.timestamp()
+        current_timestamp = int(current_time.timestamp())
+        self.toml_doc["last_updated"] = current_timestamp
         self.file.write(self.toml_doc.as_string().rstrip())
         self.update_dict()
 
@@ -84,40 +85,48 @@ class Database:
                     registered_users.append(id)
         except KeyError:
             logger.debug("KeyError on registered_users, continuing")
-        if isinstance(user, discord.User):
-            id = user.id
-            registered_users.append(id)
-        elif isinstance(user, discord.Member):
-            id = user.id
-            registered_users.append(id)
-        elif users:
-            for id in users:
+        user_already_registered = False
+        for registered_user in self.toml_doc["registered_users"]:
+            if registered_user == id:
+                user_already_registered = True
+                break
+            else:
+                continue
+        if user_already_registered is False:
+            if isinstance(user, discord.User):
+                id = user.id
                 registered_users.append(id)
-        else:
-            logger.debug(f"User: {user}")
-            raise TypeError("User was not a list or a discord User.")
-        table = tomlkit.table()
-        table.append(tomlkit.key(["course_1", "time"]), "99:99.99")
-        table.append(tomlkit.key(["course_1", "advanced"]), False)
+            elif isinstance(user, discord.Member):
+                id = user.id
+                registered_users.append(id)
+            elif users:
+                for id in users:
+                    registered_users.append(id)
+            else:
+                logger.debug(f"User: {user}")
+                raise TypeError("User was not a list or a discord User.")
+            table = tomlkit.table()
+            table.append(tomlkit.key(["course_1", "time"]), "99:99.99")
+            table.append(tomlkit.key(["course_1", "advanced"]), False)
 
-        table.append(tomlkit.key(["course_2", "time"]), "99:99.99")
-        table.append(tomlkit.key(["course_2", "advanced"]), False)
+            table.append(tomlkit.key(["course_2", "time"]), "99:99.99")
+            table.append(tomlkit.key(["course_2", "advanced"]), False)
 
-        table.append(tomlkit.key(["course_3", "time"]), "99:99.99")
-        table.append(tomlkit.key(["course_3", "advanced"]), False)
+            table.append(tomlkit.key(["course_3", "time"]), "99:99.99")
+            table.append(tomlkit.key(["course_3", "advanced"]), False)
 
-        table.append(tomlkit.key(["course_4", "time"]), "99:99.99")
-        table.append(tomlkit.key(["course_4", "advanced"]), False)
+            table.append(tomlkit.key(["course_4", "time"]), "99:99.99")
+            table.append(tomlkit.key(["course_4", "advanced"]), False)
 
-        table.append(tomlkit.key(["course_5", "time"]), "99:99.99")
-        table.append(tomlkit.key(["course_5", "advanced"]), False)
+            table.append(tomlkit.key(["course_5", "time"]), "99:99.99")
+            table.append(tomlkit.key(["course_5", "advanced"]), False)
 
-        table.append(tomlkit.key(["course_6", "time"]), "99:99.99")
-        table.append(tomlkit.key(["course_6", "advanced"]), False)
+            table.append(tomlkit.key(["course_6", "time"]), "99:99.99")
+            table.append(tomlkit.key(["course_6", "advanced"]), False)
 
-        table.append(tomlkit.key(["course_7", "time"]), "99:99.99")
-        table.append(tomlkit.key(["course_7", "advanced"]), False)
-        self.toml_doc.append(str(id), table)
+            table.append(tomlkit.key(["course_7", "time"]), "99:99.99")
+            table.append(tomlkit.key(["course_7", "advanced"]), False)
+            self.toml_doc.append(str(id), table)
         logger.debug(f"registered_users: {str(registered_users)}")
         self.toml_doc["registered_users"] = registered_users
         self.file.write(self.toml_doc.as_string().replace("\\n", ""))
