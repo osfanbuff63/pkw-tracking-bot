@@ -48,7 +48,7 @@ class Database:
             if current_time.date().month != written_time.date().month:  # type: ignore
                 # new month, reset the times
                 logger.info("A new month was detected, resetting all times.")
-                # self._overwrite()
+                self._overwrite(current_time)
         try:
             if (
                 self.toml_doc[f"{id}"][f"course_{course_id}"]["time"] < time
@@ -132,14 +132,18 @@ class Database:
         self.file.write(self.toml_doc.as_string().replace("\\n", ""))
         self.update_dict()
 
-    def _overwrite(self) -> None:
+    def _overwrite(self, date: arrow.Arrow) -> None:
         registered_users = []
         try:
             for user in self.toml_doc["registered_users"]:
                 registered_users.append(user)
         except KeyError:
             pass
-        self.file.write("")
+        # copy the current database to the archive folder so it can be viewed via /archive
+        # and in case it breaks, we have a backup
+        archive_path = Path(f"./.archive/{date.datetime.year}/{date.datetime.month}")
+        archive_path.write_bytes(self.file.read_bytes())
+        self.file.write(f"last_updated = {date.int_timestamp}")
         self.update_dict()
         if registered_users != []:
             self.register_user(users=registered_users)
