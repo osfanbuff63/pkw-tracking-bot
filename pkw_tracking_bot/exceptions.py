@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2023 osfanbuff63
 #
 # SPDX-License-Identifier: Apache-2.0
+"""Exceptions."""
 from discord import errors as discord_errors
 
 
@@ -18,3 +19,7 @@ class AdvancedBoolException(Exception):
 
 class DiscordLibException(discord_errors.DiscordException):
     """The discord.py library did not give the expected value."""
+
+
+class DateException(Exception):
+    """The year and month combination did not have a database file."""

@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2023 osfanbuff63
 #
 # SPDX-License-Identifier: Apache-2.0
+"""The main bot."""
 
 import asyncio
 import logging
@@ -13,22 +14,29 @@ from discord import app_commands
 from discord.ext import commands
 from discord.ext.commands import Context
 
-from . import constants
+from . import _constants
 from .database import Database
-from .embeds import error_embed, leaderboard_embed, success_embed
-from .exceptions import CourseException, DiscordLibException, TimeException
+from .embeds import error_embed, leaderboard_embed, success_embed, stats_embed
+from .exceptions import (
+    CourseException,
+    DateException,
+    DiscordLibException,
+    TimeException,
+)
 from .logger import handler, logger
-from .pathlib_ext import PathExt
+from .pathlib_ext import PathExt as Path
 
-token = constants.TOKEN
+token = _constants.TOKEN
 intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot("!!", intents=intents)  # type: ignore
 
 
 def run() -> None:
+    """Run the bot."""
     bot.remove_command("sync")  # type: ignore
     asyncio.run(bot.add_cog(MainCog(bot)))  # type: ignore
+    asyncio.run(bot.add_cog(Archive()))  # type: ignore
     try:
         asyncio.run(bot.run(token, log_handler=handler, log_level=logging.DEBUG))  # type: ignore
     except ValueError:
@@ -38,9 +46,17 @@ def run() -> None:
 
 
 class Buttons(discord.ui.View):
-    def __init__(self, *, timeout=None):
+    """The leaderboard buttons."""
+
+    def __init__(self, *, timeout=None, path: Path = Path("database.toml")):
+        """Initialize the leaderboard buttons.
+
+        Args:
+            timeout (int, optional): The time in which the buttons will no longer work. Defaults to None.
+            path (Path, optional): The path to the database to use. Defaults to the main database (database.toml).
+        """
         super().__init__(timeout=timeout)
-        self.database = Database(PathExt("database.toml"))
+        self.database = Database(path)
 
     @discord.ui.button(  # type: ignore
         label="Refresh", style=discord.ButtonStyle.blurple, emoji="🔄"
@@ -48,6 +64,7 @@ class Buttons(discord.ui.View):
     async def refresh_button(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        """The refresh button."""
         # why do i have to have so many type ignore comments...
         embeds = interaction.message.embeds  # type: ignore
         for embed in embeds:  # type: ignore
@@ -76,6 +93,7 @@ class Buttons(discord.ui.View):
     async def previous_course_button(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        """The previous course button."""
         embeds = interaction.message.embeds  # type: ignore
         for embed in embeds:  # type: ignore
             if embed.title.find("Course 1") != -1:  # type: ignore
@@ -111,6 +129,7 @@ class Buttons(discord.ui.View):
     async def next_course_button(
         self, interaction: discord.Interaction, button: discord.ui.Button
     ):
+        """The next course button."""
         embeds = interaction.message.embeds  # type: ignore
         for embed in embeds:  # type: ignore
             if embed.title.find("Course 1") != -1:  # type: ignore
@@ -140,15 +159,23 @@ class Buttons(discord.ui.View):
 
 
 class MainCog(commands.Cog):
+    """The main cog."""
+
     def __init__(self, bot: commands.Bot) -> None:
+        """Initialize the main cog, which holds all the commands for the bot.
+
+        Args:
+            bot (commands.Bot): The affiliated bot object.
+        """
         self.bot = bot
-        self.database = Database(PathExt("database.toml"))
+        self.database = Database(Path("database.toml"))
         self.permissions = discord.Permissions(
             274877975616
         )  # send messages [in threads], read messages [history], add reactions
 
     @bot.event
     async def on_ready():  # type: ignore
+        """Things to do once the bot is ready."""
         logger.info(f"{bot.user} has connected to Discord!")
         url = discord.utils.oauth_url(
             bot.user.id,  # type: ignore
@@ -161,11 +188,13 @@ class MainCog(commands.Cog):
     @commands.guild_only()
     @commands.is_owner()
     async def sync(self, ctx: Context) -> None:
+        """The sync command, which only works for the owner of the bot."""
         await self.bot.tree.sync()
         await ctx.reply("Synced application commands.")
 
     @app_commands.command(name="ping", description="Ping the bot.")
     async def ping(self, interaction: discord.Interaction) -> None:
+        """Ping the bot to make sure it is online."""
         await interaction.response.send_message(
             f"Pong! Ping: {format(round(bot.latency, 1))}"  # type: ignore
         )
@@ -189,7 +218,7 @@ class MainCog(commands.Cog):
             user: (Discord user, optional): Submit this time for another user. If not specified, it is assumed to be the user running the command. You must have the 'Moderate Members' permission to do this.
         """
         if isinstance(interaction.user, discord.Member):
-            if interaction.user.guild_permissions.moderate_members == True:
+            if interaction.user.guild_permissions.moderate_members:
                 if user is None:
                     real_user = interaction.user
                 elif isinstance(user, discord.Member):
@@ -249,7 +278,7 @@ class MainCog(commands.Cog):
             logger.exception("Stored time was shorter than the given time.")
             embed = error_embed(
                 e,
-                f"The time you entered was longer than the currently stored time. If this is in error, please let <@995310680909549598> know.",
+                "The time you entered was longer than the currently stored time. If this is in error, please let <@995310680909549598> know.",
             )
             await interaction.response.send_message(embed=embed, ephemeral=True)
 
@@ -305,6 +334,93 @@ class MainCog(commands.Cog):
                 f"The user {real_user.mention} has been added to the registered users. Their times will now show on the leaderboard."
             )
         )
+
+
+class Archive(commands.GroupCog, group_name="archive"):
+    """The archive subcommands."""
+
+    def __init__(self) -> None:
+        """Initialize the archive subcommands."""
+        pass
+
+    @app_commands.command()
+    async def leaderboard(
+        self,
+        interaction: discord.Interaction,
+        year: int,
+        month: int,
+        course: Optional[int] = 1,
+    ):
+        """Get the leaderboard for a certain time in the past.
+
+        Args:
+            year (int): The year to look up.
+            month (int): The month to look up.
+            course (int, optional): The course to start on. Defaults to 1.
+        """
+        if course not in [1, 2, 3, 4, 5, 6, 7]:
+            try:
+                raise CourseException()
+            except CourseException as e:
+                logger.exception("The course given was invalid.")
+                embed = error_embed(
+                    e,
+                    "The course number you gave was not valid. Make sure this is a valid course!\n*Note: This bot does not support the Daily Challenge right now.*\n",
+                )
+                await interaction.response.send_message(embed=embed)
+                raise CourseException from e  # stops command from continuing to run
+        data_path = Path(f"./.archive/{year}/{month}/database.toml")
+        if data_path.exists() is False:
+            try:
+                raise DateException()
+            except DateException as e:
+                logger.exception("The path to the year/date combination was not found.")
+                await interaction.response.send_message(
+                    embed=error_embed(
+                        e,
+                        "The path to the year/date combination was not found. This could mean you put in an invalid date, or there was an internal error.",
+                    )
+                )
+                raise DateException from e  # stops command from continuing to run
+        local_database = Database(data_path)
+        all_times, best_time = local_database.leaderboard(course)
+        registered_users = local_database.get("registered_users")
+        embed = leaderboard_embed(all_times, best_time, registered_users, course)
+        view = Buttons(path=data_path)
+        await interaction.response.send_message(embed=embed, view=view)
+
+    @app_commands.command()
+    async def stats(
+        self,
+        interaction: discord.Interaction,
+        year: int,
+        month: int,
+        user: Optional[discord.User | discord.Member] = None,
+    ):
+        """Get your or another user's statistics for a certain time in the past.
+
+        Args:
+            year (int): The year to look up.
+            month (int): The month to look up.
+            user (discord.User/discord.Member, optional): The user to look up.. Defaults to the user running the command.
+        """
+        if user is None:
+            user = interaction.user
+        data_path = Path(f"./.archive/{year}/{month}/database.toml")
+        if data_path.exists() is False:
+            try:
+                raise DateException()
+            except DateException as e:
+                logger.exception("The path to the year/date combination was not found.")
+                await interaction.response.send_message(
+                    embed=error_embed(
+                        e,
+                        "The path to the year/date combination was not found. This could mean you put in an invalid date, or there was an internal error.",
+                    )
+                )
+                raise DateException from e  # stops command from continuing to run
+        embed = stats_embed(user, year, month)
+        await interaction.response.send_message(embed=embed)
 
 
 run()

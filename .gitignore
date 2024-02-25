@@ -1,7 +1,7 @@
 # SPDX-FileCopyrightText: 2023 osfanbuff63
 
 # SPDX-License-Identifier: CC0-1.0
-/pkw_tracking_bot/constants.py
+/pkw_tracking_bot/_constants.py
 database.toml
 .venv/
 .mypy_cache/

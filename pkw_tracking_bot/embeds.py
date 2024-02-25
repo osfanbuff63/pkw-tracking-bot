@@ -1,11 +1,12 @@
 # SPDX-FileCopyrightText: 2023 osfanbuff63
 #
 # SPDX-License-Identifier: Apache-2.0
+"""The embed constructors."""
 
 from typing import Optional
 
 import arrow
-from discord import Embed
+from discord import Embed, User, Member
 
 from .database import Database
 from .logger import logger
@@ -15,6 +16,15 @@ database = Database(PathExt("database.toml"))
 
 
 def error_embed(error, extra_info: Optional[str]) -> Embed:
+    """An embed to be used when an error needs to be displayed.
+
+    Args:
+        error (_type_): The error.
+        extra_info (Optional[str]): A user-friendly explanation of the error.
+
+    Returns:
+        Embed: The embed.
+    """
     if not extra_info:
         extra_info = "No further information was available."
     embed = Embed(
@@ -27,6 +37,14 @@ def error_embed(error, extra_info: Optional[str]) -> Embed:
 
 
 def success_embed(description: str) -> Embed:
+    """An embed to be used for a successful action.
+
+    Args:
+        description (str): The text of the embed.
+
+    Returns:
+        Embed: The embed.
+    """
     embed = Embed(
         type="rich",
         title="Success",
@@ -39,6 +57,17 @@ def success_embed(description: str) -> Embed:
 def leaderboard_embed(
     all_times: dict, best_time: str, registered_users: list, course: int
 ) -> Embed:
+    """The leaderboard embed.
+
+    Args:
+        all_times (dict): All the times to display.
+        best_time (str): The best time.
+        registered_users (list): All the registered users.
+        course (int): The course for all the data above.
+
+    Returns:
+        Embed: The embed.
+    """
     all_times_1 = all_times.copy()
     registered_users_1 = registered_users.copy()
     logger.debug(f"All times: {str(all_times)}")
@@ -80,9 +109,9 @@ def leaderboard_embed(
         10,
         0,
         0,
-    ).timestamp()
+    ).int_timestamp
     # convert timestamp to an int because Discord doesn't accept decimal times
-    description = f"**Courses reset <t:{int(timestamp)}:R>.**\n\n"
+    description = f"**Courses reset <t:{timestamp}:R>.**\n\n"
     if users == 0:
         description += "*No times have been submitted on this course yet.*"
     else:
@@ -102,5 +131,61 @@ def leaderboard_embed(
         type="rich",
         description=description,
         title=f"Leaderboard for Course {course}",
+    )
+    return embed
+
+
+def stats_embed(user: User | Member, year: int, month: int) -> Embed:
+    """Get the stats for the archive viewer.
+
+    Args:
+        user (User | Member): The user to look up.
+        year (int): The year to look up.
+        month (int): The month to look up.
+
+    Returns:
+        Embed: The embed.
+    """
+    id = user.id
+    # dict of months, with corresponding humanified names
+    months = {
+        "1": "January",
+        "2": "February",
+        "3": "March",
+        "4": "April",
+        "5": "May",
+        "6": "June",
+        "7": "July",
+        "8": "August",
+        "9": "September",
+        "10": "October",
+        "11": "November",
+        "12": "December",
+        # repeat the first 9 with ones with leading zeros, just in case
+        "01": "January",
+        "02": "February",
+        "03": "March",
+        "04": "April",
+        "05": "May",
+        "06": "June",
+        "07": "July",
+        "08": "August",
+        "09": "September",
+    }
+    database = Database(PathExt(f"./.archive/{year}/{month}"))
+    stats = database.get("id")
+    logger.debug(f"stats: {stats}")
+    text = f"**Course 1**: {stats["course_1"] if stats["course_1"] != "99:99.99" else "*No time submitted*"}\n"
+    text += f"**Course 2**: {stats["course_2"] if stats["course_2"] != "99:99.99" else "*No time submitted*"}\n"
+    text += f"**Course 3**: {stats["course_3"] if stats["course_3"] != "99:99.99" else "*No time submitted*"}\n"
+    text += f"**Course 4**: {stats["course_4"] if stats["course_4"] != "99:99.99" else "*No time submitted*"}\n"
+    text += f"**Course 5**: {stats["course_5"] if stats["course_5"] != "99:99.99" else "*No time submitted*"}\n"
+    text += f"**Course 6**: {stats["course_6"] if stats["course_6"] != "99:99.99" else "*No time submitted*"}\n"
+    text += f"**Course 7**: {stats["course_7"] if stats["course_7"] != "99:99.99" else "*No time submitted*"}\n"
+    embed = Embed(
+        color=65280,
+        type="rich",
+        description=text,
+        title=f"**Stats for <@{id}> in {months[f"{month}"]} {year}**",
     )
     return embed

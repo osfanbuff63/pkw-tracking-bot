@@ -1,9 +1,8 @@
 # SPDX-FileCopyrightText: 2023 osfanbuff63
 #
 # SPDX-License-Identifier: Apache-2.0
-
+"""Logger initialization."""
 import logging
-import sys
 
 from .pathlib_ext import PathExt as Path
 

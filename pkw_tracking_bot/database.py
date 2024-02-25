@@ -1,6 +1,7 @@
 # SPDX-FileCopyrightText: 2023 osfanbuff63
 #
 # SPDX-License-Identifier: Apache-2.0
+"""The database handler."""
 
 from typing import Optional, Tuple
 
@@ -14,18 +15,28 @@ from .pathlib_ext import PathExt as Path
 
 
 class Database:
+    """An access point to the database."""
+
     def __init__(self, file: Path) -> None:
+        """Initialize the access point to the database.
+
+        Args:
+            file (Path): The path to the database file.
+        """
         self.file: Path = file
         if self.file.exists() is False:
             self.file.write("")
         self.update_dict()
 
-    def load(self):
+    def load(self) -> tomlkit.TOMLDocument:
+        """Load the database."""
         file = Path(self.file).resolve()
-        toml_dict = tomlkit.load(file)
+        with file.open() as _file:
+            toml_dict = tomlkit.load(_file)
         return toml_dict
 
     def update_dict(self) -> None:
+        """Update the internal database."""
         toml_dict = self.load()
         self.toml_doc = toml_dict
 
@@ -36,14 +47,25 @@ class Database:
         course_id: int,
         advanced: bool = False,
     ) -> None:
+        """Write a time to the database.
+
+        Args:
+            user (discord.User | discord.Member): The Discord user to submit this time for.
+            time (str): The time to submit.
+            course_id (int): The course to submit this time to.
+            advanced (bool, optional): Whether this was an advanced completion. Defaults to False.
+
+        Raises:
+            TimeException: If the time was slower than the currently stored time.
+        """
         id = user.id
         utc = arrow.utcnow()
         current_time = utc.to("US/Eastern")
         try:
-            written_time = arrow.get(self.toml_doc["last_updated"])
+            written_time = arrow.get(self.toml_doc["last_updated"])  # type: ignore
         except:
             written_time = None
-        if written_time != None:
+        if written_time is not None:
             # ignore type checking because written_time cannot be None here
             if current_time.date().month != written_time.date().month:  # type: ignore
                 # new month, reset the times
@@ -51,8 +73,8 @@ class Database:
                 self._overwrite(current_time)
         try:
             if (
-                self.toml_doc[f"{id}"][f"course_{course_id}"]["time"] < time
-                or self.toml_doc[f"{id}"][f"course_{course_id}"]["time"] == ""
+                self.toml_doc[f"{id}"][f"course_{course_id}"]["time"] < time  # type: ignore
+                or self.toml_doc[f"{id}"][f"course_{course_id}"]["time"] == ""  # type: ignore
             ):
                 raise TimeException()
         except KeyError:
@@ -60,10 +82,12 @@ class Database:
                 "User did not exist for given course, assuming the time is newer."
             )
             self.register_user(user)
-        self.toml_doc[f"{id}"][f"course_{course_id}"]["time"] = time
-        self.toml_doc[f"{id}"][f"course_{course_id}"]["advanced"] = advanced
+        self.toml_doc[f"{id}"][f"course_{course_id}"]["time"] = time  # type: ignore
+        self.toml_doc[f"{id}"][f"course_{course_id}"]["advanced"] = advanced  # type: ignore
         # logger.debug(f"self.toml_doc: {self.toml_doc.as_string()}")
-        current_timestamp = int(current_time.timestamp())
+        current_timestamp = current_time.int_timestamp
+        # make backup
+        self._backup(current_time)
         self.toml_doc["last_updated"] = current_timestamp
         self.file.write(self.toml_doc.as_string().rstrip())
         self.update_dict()
@@ -73,6 +97,15 @@ class Database:
         user: Optional[discord.User | discord.Member] = None,
         users: Optional[list[int | str]] = None,
     ):
+        """Register a user or group of users to be in the database.
+
+        Args:
+            user (Optional[discord.User  |  discord.Member], optional): The Discord user to register. **Only one** of `user` and `users` can be specified. Defaults to None.
+            users (Optional[list[int  |  str]], optional): A list of user IDs to register. **Only one** of `user` and `users` can be specified. Defaults to None.
+
+        Raises:
+            TypeError: If more than one or neither of `user` and `users` is specified.
+        """
         if user and users:
             raise TypeError("User and users cannot both be defined.")
         if user is None and users is None:
@@ -81,12 +114,12 @@ class Database:
         registered_users = []
         try:
             if self.toml_doc["registered_users"] != []:
-                for id in self.toml_doc["registered_users"]:
+                for id in self.toml_doc["registered_users"]:  # type: ignore
                     registered_users.append(id)
         except KeyError:
             logger.debug("KeyError on registered_users, continuing")
         user_already_registered = False
-        for registered_user in self.toml_doc["registered_users"]:
+        for registered_user in self.toml_doc["registered_users"]:  # type: ignore
             if registered_user == id:
                 user_already_registered = True
                 break
@@ -128,40 +161,60 @@ class Database:
             table.append(tomlkit.key(["course_7", "advanced"]), False)
             self.toml_doc.append(str(id), table)
         logger.debug(f"registered_users: {str(registered_users)}")
+        # make backup
+        date = arrow.get()
+        self._backup(date)
+        current_timestamp = date.int_timestamp
         self.toml_doc["registered_users"] = registered_users
+        self.toml_doc["last_updated"] = current_timestamp
         self.file.write(self.toml_doc.as_string().replace("\\n", ""))
         self.update_dict()
+
+    def _backup(self, date: arrow.Arrow):
+        # copy the current database to the archive folder so it can be viewed via /archive
+        # and in case it breaks, we have a backup
+        archive_path = Path(
+            f"./.archive/{date.datetime.year}/{date.datetime.month}/database.toml"
+        )
+        archive_path.write_bytes(self.file.read_bytes())
 
     def _overwrite(self, date: arrow.Arrow) -> None:
         registered_users = []
         try:
-            for user in self.toml_doc["registered_users"]:
+            for user in self.toml_doc["registered_users"]:  # type: ignore
                 registered_users.append(user)
         except KeyError:
             pass
-        # copy the current database to the archive folder so it can be viewed via /archive
-        # and in case it breaks, we have a backup
-        archive_path = Path(f"./.archive/{date.datetime.year}/{date.datetime.month}")
-        archive_path.write_bytes(self.file.read_bytes())
+        # make backup
+        self._backup(date)
         self.file.write(f"last_updated = {date.int_timestamp}")
         self.update_dict()
         if registered_users != []:
             self.register_user(users=registered_users)
 
     def leaderboard(self, course: int) -> Tuple[dict, str]:
+        """Get the statistics needed for the leaderboard command.
+
+        Args:
+            course (int): The course to get the statistics for,
+
+        Returns:
+            Tuple[dict, str]: All the times, and the best time.
+        """
         current_state = self.load()
         registered_users = current_state.get("registered_users")
         logger.debug(f"Registered users (database): {registered_users}")
         times = {}
-        for user in registered_users:
-            times[user] = current_state[f"{user}"][f"course_{course}"]["time"]
-            if current_state[f"{user}"][f"course_{course}"]["advanced"] == True:
+        for user in registered_users:  # type: ignore
+            times[user] = current_state[f"{user}"][f"course_{course}"]["time"]  # type: ignore
+            if current_state[f"{user}"][f"course_{course}"]["advanced"]:  # type: ignore
                 str_times_user = str(times[user])
                 logger.debug(f"str_times_user: {str_times_user}")
                 times[user] = str_times_user + " [Advanced Completion]"
                 logger.debug(f"times[user]: {times[user]}")
-        best_time = min(times.values())
-        return times, best_time
+        best_time = min(times.values())  # type: ignore
+        return times, best_time  # type: ignore
 
     def get(self, key: str):
+        """Get a key from the database file."""
         return self.toml_doc[key]
