@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
-
 # SPDX-FileCopyrightText: 2023 osfanbuff63
 #
 # SPDX-License-Identifier: Apache-2.0
+
 # requires git and poetry
 kill -9 "$1"
 echo Updating...
 git pull
-poetry shell
 poetry install
 echo Running bot!
-nohup pkw-tracking-bot &
+poetry run nohup pkw-tracking-bot &
