@@ -423,4 +423,5 @@ class Archive(commands.GroupCog, group_name="archive"):
         await interaction.response.send_message(embed=embed)
 
 
-run()
+if __name__ == "__main__":
+    run()

@@ -176,6 +176,8 @@ class Database:
         archive_path = Path(
             f"./.archive/{date.datetime.year}/{date.datetime.month}/database.toml"
         )
+        if not archive_path.exists():
+            archive_path.touch()
         archive_path.write_bytes(self.file.read_bytes())
 
     def _overwrite(self, date: arrow.Arrow) -> None:
