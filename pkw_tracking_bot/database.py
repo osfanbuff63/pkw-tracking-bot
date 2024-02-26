@@ -177,6 +177,8 @@ class Database:
             f"./.archive/{date.datetime.year}/{date.datetime.month}/database.toml"
         )
         if not archive_path.exists():
+            archive_path_dir = Path(f"./.archive/{date.datetime.year}/{date.datetime.month}/")
+            archive_path_dir.mkdir(parents=True)
             archive_path.touch()
         archive_path.write_bytes(self.file.read_bytes())
 
