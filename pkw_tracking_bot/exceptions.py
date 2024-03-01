@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 """Exceptions."""
+
 from discord import errors as discord_errors
 
 

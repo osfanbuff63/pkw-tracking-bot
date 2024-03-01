@@ -2,6 +2,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 """Logger initialization."""
+
 import logging
 
 from .pathlib_ext import PathExt as Path

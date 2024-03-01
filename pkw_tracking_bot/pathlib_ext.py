@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Extends pathlib to work with json more easily."""
+
 from pathlib import Path
 
 

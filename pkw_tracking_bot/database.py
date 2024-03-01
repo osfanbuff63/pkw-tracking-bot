@@ -119,12 +119,16 @@ class Database:
         except KeyError:
             logger.debug("KeyError on registered_users, continuing")
         user_already_registered = False
-        for registered_user in self.toml_doc["registered_users"]:  # type: ignore
-            if registered_user == id:
-                user_already_registered = True
-                break
-            else:
-                continue
+        try:
+            for registered_user in self.toml_doc["registered_users"]:  # type: ignore
+                if registered_user == id:
+                    user_already_registered = True
+                    break
+                else:
+                    continue
+        except KeyError:
+            # registered_users didn't exist, likely the database just reset
+            pass
         if user_already_registered is False:
             if isinstance(user, discord.User):
                 id = user.id
@@ -177,7 +181,9 @@ class Database:
             f"./.archive/{date.datetime.year}/{date.datetime.month}/database.toml"
         )
         if not archive_path.exists():
-            archive_path_dir = Path(f"./.archive/{date.datetime.year}/{date.datetime.month}/")
+            archive_path_dir = Path(
+                f"./.archive/{date.datetime.year}/{date.datetime.month}/"
+            )
             archive_path_dir.mkdir(parents=True)
             archive_path.touch()
         archive_path.write_bytes(self.file.read_bytes())
