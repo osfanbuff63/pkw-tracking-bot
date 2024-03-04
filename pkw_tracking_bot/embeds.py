@@ -194,6 +194,6 @@ def stats_embed(user: User | Member, year: int, month: int) -> Embed:
         color=65280,
         type="rich",
         description=text,
-        title=f"**Stats for {months[f"{month}"]} {year}**",
+        # title=f"**Stats for {months[f"{month}"]} {year}**",
     )
     return embed
