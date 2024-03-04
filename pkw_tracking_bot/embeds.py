@@ -175,17 +175,25 @@ def stats_embed(user: User | Member, year: int, month: int) -> Embed:
     database = Database(Path(f"./database_archive/{year}/{month}/database.toml"))
     stats = database.get(str(id))
     logger.debug(f"stats: {stats}")
-    text = f"**Course 1**: {stats["course_1"] if stats["course_1"] != "99:99.99" else "*No time submitted*"}\n"
-    text += f"**Course 2**: {stats["course_2"] if stats["course_2"] != "99:99.99" else "*No time submitted*"}\n"
-    text += f"**Course 3**: {stats["course_3"] if stats["course_3"] != "99:99.99" else "*No time submitted*"}\n"
-    text += f"**Course 4**: {stats["course_4"] if stats["course_4"] != "99:99.99" else "*No time submitted*"}\n"
-    text += f"**Course 5**: {stats["course_5"] if stats["course_5"] != "99:99.99" else "*No time submitted*"}\n"
-    text += f"**Course 6**: {stats["course_6"] if stats["course_6"] != "99:99.99" else "*No time submitted*"}\n"
-    text += f"**Course 7**: {stats["course_7"] if stats["course_7"] != "99:99.99" else "*No time submitted*"}\n"
+    text = f"### Stats for <@{id}>\n\n"
+    text += f"**Course 1**: {stats["course_1"].get("time") if stats["course_1"].get("time") != "99:99.99" else "*No time submitted*"}"
+    text += f"{" (Advanced Completion)" if stats["course_1"].get("advanced") else ""}\n"
+    text += f"**Course 2**: {stats["course_2"].get("time") if stats["course_2"].get("time") != "99:99.99" else "*No time submitted*"}"
+    text += f"{" (Advanced Completion)" if stats["course_2"].get("advanced") else ""}\n"
+    text += f"**Course 3**: {stats["course_3"].get("time") if stats["course_3"].get("time") != "99:99.99" else "*No time submitted*"}"
+    text += f"{" (Advanced Completion)" if stats["course_3"].get("advanced") else ""}\n"
+    text += f"**Course 4**: {stats["course_4"].get("time") if stats["course_4"].get("time") != "99:99.99" else "*No time submitted*"}"
+    text += f"{" (Advanced Completion)" if stats["course_4"].get("advanced") else ""}\n"
+    text += f"**Course 5**: {stats["course_5"].get("time") if stats["course_5"].get("time") != "99:99.99" else "*No time submitted*"}"
+    text += f"{" (Advanced Completion)" if stats["course_5"].get("advanced") else ""}\n"
+    text += f"**Course 6**: {stats["course_6"].get("time") if stats["course_6"].get("time") != "99:99.99" else "*No time submitted*"}"
+    text += f"{" (Advanced Completion)" if stats["course_6"].get("advanced") else ""}\n"
+    text += f"**Course 7**: {stats["course_7"].get("time") if stats["course_7"].get("time") != "99:99.99" else "*No time submitted*"}"
+    text += f"{" (Advanced Completion)" if stats["course_7"].get("advanced") else ""}\n"
     embed = Embed(
         color=65280,
         type="rich",
         description=text,
-        title=f"**Stats for <@{id}> in {months[f"{month}"]} {year}**",
+        title=f"**Stats for {months[f"{month}"]} {year}**",
     )
     return embed
