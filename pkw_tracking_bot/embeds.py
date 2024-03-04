@@ -175,7 +175,7 @@ def stats_embed(user: User | Member, year: int, month: int) -> Embed:
     database = Database(Path(f"./database_archive/{year}/{month}/database.toml"))
     stats = database.get(str(id))
     logger.debug(f"stats: {stats}")
-    text = f"### Stats for <@{id}>\n\n"
+    text = f"### Stats for <@{id}> in {months[f"{month}"]} {year}\n\n"
     text += f"**Course 1**: {stats["course_1"].get("time") if stats["course_1"].get("time") != "99:99.99" else "*No time submitted*"}"
     text += f"{" (Advanced Completion)" if stats["course_1"].get("advanced") else ""}\n"
     text += f"**Course 2**: {stats["course_2"].get("time") if stats["course_2"].get("time") != "99:99.99" else "*No time submitted*"}"
