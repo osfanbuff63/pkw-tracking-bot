@@ -10,9 +10,9 @@ from discord import Embed, User, Member
 
 from .database import Database
 from .logger import logger
-from .pathlib_ext import PathExt
+from pathlib import Path
 
-database = Database(PathExt("database.toml"))
+database = Database(Path("database.toml"))
 
 
 def error_embed(error, extra_info: Optional[str]) -> Embed:
@@ -172,7 +172,7 @@ def stats_embed(user: User | Member, year: int, month: int) -> Embed:
         "08": "August",
         "09": "September",
     }
-    database = Database(PathExt(f"./.archive/{year}/{month}/database.toml"))
+    database = Database(Path(f"./database_archive/{year}/{month}/database.toml"))
     stats = database.get("id")
     logger.debug(f"stats: {stats}")
     text = f"**Course 1**: {stats["course_1"] if stats["course_1"] != "99:99.99" else "*No time submitted*"}\n"

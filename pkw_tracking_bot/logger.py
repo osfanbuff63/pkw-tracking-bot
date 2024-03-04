@@ -5,10 +5,10 @@
 
 import logging
 
-from .pathlib_ext import PathExt as Path
+from pathlib import Path
 
 file = Path("pkw_tracking_bot.log")
-file.write("")
+file.write_text("")
 handler = logging.FileHandler(
     filename="pkw_tracking_bot.log", encoding="utf-8", mode="w"
 )

@@ -4,14 +4,13 @@
 """The database handler."""
 
 from typing import Optional, Tuple
-
 import arrow
 import discord
 import tomlkit
 
 from .exceptions import TimeException
 from .logger import logger
-from .pathlib_ext import PathExt as Path
+from pathlib import Path
 
 
 class Database:
@@ -23,9 +22,12 @@ class Database:
         Args:
             file (Path): The path to the database file.
         """
-        self.file: Path = file
+        if isinstance(file, str):
+            self.file = Path(file)
+        elif isinstance(file, Path):
+            self.file = file
         if self.file.exists() is False:
-            self.file.write("")
+            self.file.write_text("")
         self.update_dict()
 
     def load(self) -> tomlkit.TOMLDocument:
@@ -89,7 +91,7 @@ class Database:
         # make backup
         self._backup(current_time)
         self.toml_doc["last_updated"] = current_timestamp
-        self.file.write(self.toml_doc.as_string().rstrip())
+        self.file.write_text(self.toml_doc.as_string().rstrip())
         self.update_dict()
 
     def register_user(
@@ -171,22 +173,26 @@ class Database:
         current_timestamp = date.int_timestamp
         self.toml_doc["registered_users"] = registered_users
         self.toml_doc["last_updated"] = current_timestamp
-        self.file.write(self.toml_doc.as_string().replace("\\n", ""))
+        self.file.write_text(self.toml_doc.as_string().replace("\\n", ""))
         self.update_dict()
 
     def _backup(self, date: arrow.Arrow):
         # copy the current database to the archive folder so it can be viewed via /archive
         # and in case it breaks, we have a backup
+        datetime = date.date()
+        file_dir = str(self.file).strip(self.file.name)
         archive_path = Path(
-            f"./.archive/{date.datetime.year}/{date.datetime.month}/database.toml"
+            file_dir,
+            f"database_archive/{datetime.year}/{datetime.month}/database.toml",
         )
         if not archive_path.exists():
             archive_path_dir = Path(
-                f"./.archive/{date.datetime.year}/{date.datetime.month}/"
+                file_dir,
+                f"database_archive/{datetime.year}/{datetime.month}/"
             )
-            archive_path_dir.mkdir(parents=True)
-            archive_path.touch()
-        archive_path.write_bytes(self.file.read_bytes())
+            archive_path_dir.mkdir(parents=True, exist_ok=True)
+            archive_path.touch(exist_ok=True)
+        archive_path.write_text(self.file.read_text())
 
     def _overwrite(self, date: arrow.Arrow) -> None:
         registered_users = []
@@ -197,7 +203,7 @@ class Database:
             pass
         # make backup
         self._backup(date)
-        self.file.write(f"last_updated = {date.int_timestamp}")
+        self.file.write_text(f"last_updated = {date.int_timestamp}")
         self.update_dict()
         if registered_users != []:
             self.register_user(users=registered_users)

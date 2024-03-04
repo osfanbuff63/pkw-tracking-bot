@@ -24,7 +24,7 @@ from .exceptions import (
     TimeException,
 )
 from .logger import handler, logger
-from .pathlib_ext import PathExt as Path
+from pathlib import Path
 
 token = _constants.TOKEN
 intents = discord.Intents.default()
@@ -369,7 +369,7 @@ class Archive(commands.GroupCog, group_name="archive"):
                 )
                 await interaction.response.send_message(embed=embed)
                 raise CourseException from e  # stops command from continuing to run
-        data_path = Path(f"./.archive/{year}/{month}/database.toml")
+        data_path = Path(f"./database_archive/{year}/{month}/database.toml")
         if data_path.exists() is False:
             try:
                 raise DateException()
@@ -406,7 +406,7 @@ class Archive(commands.GroupCog, group_name="archive"):
         """
         if user is None:
             user = interaction.user
-        data_path = Path(f"./.archive/{year}/{month}/database.toml")
+        data_path = Path(f"./database_archive/{year}/{month}/database.toml")
         if data_path.exists() is False:
             try:
                 raise DateException()

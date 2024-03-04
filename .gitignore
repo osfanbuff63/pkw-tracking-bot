@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: CC0-1.0
 /pkw_tracking_bot/_constants.py
 database.toml
+database_archive/**
 .venv/
 .mypy_cache/
 *.log
