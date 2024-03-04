@@ -16,7 +16,7 @@ from pathlib import Path
 class Database:
     """An access point to the database."""
 
-    def __init__(self, file: Path) -> None:
+    def __init__(self, file: Path | str) -> None:
         """Initialize the access point to the database.
 
         Args:
@@ -89,7 +89,7 @@ class Database:
         # logger.debug(f"self.toml_doc: {self.toml_doc.as_string()}")
         current_timestamp = current_time.int_timestamp
         # make backup
-        self._backup(current_time)
+        self.backup(current_time)
         self.toml_doc["last_updated"] = current_timestamp
         self.file.write_text(self.toml_doc.as_string().rstrip())
         self.update_dict()
@@ -169,14 +169,15 @@ class Database:
         logger.debug(f"registered_users: {str(registered_users)}")
         # make backup
         date = arrow.get()
-        self._backup(date)
+        self.backup(date)
         current_timestamp = date.int_timestamp
         self.toml_doc["registered_users"] = registered_users
         self.toml_doc["last_updated"] = current_timestamp
         self.file.write_text(self.toml_doc.as_string().replace("\\n", ""))
         self.update_dict()
 
-    def _backup(self, date: arrow.Arrow):
+    def backup(self, date: arrow.Arrow):
+        """Backup the database."""
         # copy the current database to the archive folder so it can be viewed via /archive
         # and in case it breaks, we have a backup
         datetime = date.date()
@@ -187,8 +188,7 @@ class Database:
         )
         if not archive_path.exists():
             archive_path_dir = Path(
-                file_dir,
-                f"database_archive/{datetime.year}/{datetime.month}/"
+                file_dir, f"database_archive/{datetime.year}/{datetime.month}/"
             )
             archive_path_dir.mkdir(parents=True, exist_ok=True)
             archive_path.touch(exist_ok=True)
@@ -202,7 +202,7 @@ class Database:
         except KeyError:
             pass
         # make backup
-        self._backup(date)
+        self.backup(date)
         self.file.write_text(f"last_updated = {date.int_timestamp}")
         self.update_dict()
         if registered_users != []:

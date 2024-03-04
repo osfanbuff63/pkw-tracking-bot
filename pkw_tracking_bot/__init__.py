@@ -6,6 +6,7 @@
 import asyncio
 import logging
 import sys
+import arrow
 from string import Template
 from typing import Optional
 
@@ -334,6 +335,14 @@ class MainCog(commands.Cog):
                 f"The user {real_user.mention} has been added to the registered users. Their times will now show on the leaderboard."
             )
         )
+
+    @app_commands.command()
+    @commands.is_owner()
+    async def backup(self, interaction: discord.Interaction):
+        """Backup the database."""
+        date = arrow.now()
+        self.database.backup(date)
+        await interaction.response.send_message("Database backed up.", ephemeral=True)
 
 
 class Archive(commands.GroupCog, group_name="archive"):
